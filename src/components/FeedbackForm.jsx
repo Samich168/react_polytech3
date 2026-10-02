@@ -5,21 +5,15 @@ import "./FeedbackForm.css";
 
 
 function FeedbackForm() {
-  // --- Состояние значений полей ---
-  // Каждый инпут — управляемый компонент: его значение хранится в state.
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
 
-  // Доп. задание 3: чекбокс «Хочу получить ответ».
-  // Пока включён (по умолчанию) — email обязателен, как и было.
-  // Если пользователь его выключит — email можно оставить пустым.
+
   const [wantsReply, setWantsReply] = useState(true);
 
-  // --- Состояние ошибки валидации ---
-  // Храним текст ошибки для каждого поля отдельно.
-  // Если ошибки нет — значение null.
+
   const [errors, setErrors] = useState({
     name: null,
     email: null,
@@ -27,10 +21,6 @@ function FeedbackForm() {
     message: null,
   });
 
-  // --- Состояние «тронутых» полей ---
-  // Поле считается «тронутым» (touched), если пользователь хотя бы раз
-  // вышел из него (blur). До этого момента не показываем ошибки,
-  // даже если значение невалидно — это снижает раздражение пользователя.
   const [touched, setTouched] = useState({
     name: false,
     email: false,
@@ -38,16 +28,13 @@ function FeedbackForm() {
     message: false,
   });
 
-  // --- Состояние процесса отправки ---
-  // Пока идёт «запрос» — блокируем кнопку и показываем индикатор.
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- Состояние успешной отправки ---
-  // После успешной отправки показываем сообщение вместо формы.
+
   const [submitted, setSubmitted] = useState(false);
 
-  // --- Функции валидации ---
-  // Имя: минимум 2 символа, только буквы, пробелы и дефис.
+
   const validateName = (value) => {
     if (!value.trim()) return "Имя обязательно для заполнения";
     if (value.trim().length < 2) return "Минимум 2 символа";
@@ -56,23 +43,17 @@ function FeedbackForm() {
     return null; // нет ошибки
   };
 
-  // Email: проверка через регулярное выражение.
-  // Доп. задание 3: required передаётся явно (а не берётся из wantsReply
-  // через замыкание), чтобы функция всегда использовала актуальное значение,
-  // даже когда её вызывают сразу после переключения чекбокса.
+
   const validateEmail = (value, required = wantsReply) => {
     if (!value.trim()) {
       return required ? "Email обязателен для заполнения" : null;
     }
-    // Простая, но достаточно надёжная проверка формата.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()))
       return "Некорректный формат email";
     return null;
   };
 
-  // Доп. задание 2: телефон в формате +7 (XXX) XXX-XX-XX.
-  // Поле необязательное: пустое значение — не ошибка, но если
-  // пользователь начал вводить номер, он должен быть введён полностью.
+
   const validatePhone = (value) => {
     if (!value) return null;
     if (!/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(value)) {
@@ -81,7 +62,6 @@ function FeedbackForm() {
     return null;
   };
 
-  // Сообщение: минимум 10 символов.
   const validateMessage = (value) => {
     if (!value.trim()) return "Сообщение обязательно для заполнения";
     if (value.trim().length < 10) return "Минимум 10 символов";
@@ -89,7 +69,6 @@ function FeedbackForm() {
     return null;
   };
 
-  // Универсальный объект валидаторов — удобно перебирать в цикле.
   const validators = {
     name: validateName,
     email: validateEmail,
@@ -97,18 +76,15 @@ function FeedbackForm() {
     message: validateMessage,
   };
 
-  // Доп. задание 2: маска телефона.
-  // Берёт только цифры из введённого значения и заново собирает
-  // строку вида "+7 (XXX) XXX-XX-XX" по мере набора.
+
   const formatPhone = (rawValue) => {
     let digits = rawValue.replace(/\D/g, "");
 
-    // Ведущую 7 или 8 (код страны / старый формат) не дублируем —
-    // "+7" мы и так подставляем сами.
+
     if (digits.startsWith("7") || digits.startsWith("8")) {
       digits = digits.slice(1);
     }
-    digits = digits.slice(0, 10); // максимум 10 цифр после кода страны
+    digits = digits.slice(0, 10); 
 
     if (digits.length === 0) return "";
 
@@ -121,13 +97,10 @@ function FeedbackForm() {
     return formatted;
   };
 
-  // Обработчик изменения поля.
-  // Принимает имя поля и новое значение, проверяет и обновляет состояние.
+
   const handleChange = (field, value) => {
-    // Для телефона сначала прогоняем значение через маску.
     const nextValue = field === "phone" ? formatPhone(value) : value;
 
-    // Обновляем значение соответствующего поля через switch.
     switch (field) {
       case "name":
         setName(nextValue);
@@ -141,11 +114,8 @@ function FeedbackForm() {
       case "message":
         setMessage(nextValue);
         break;
-      // no default
     }
 
-    // Если поле уже тронуто — сразу валидируем при наборе.
-    // Если нет — не показываем ошибки, пока пользователь не уйдёт из поля.
     if (touched[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -154,12 +124,8 @@ function FeedbackForm() {
     }
   };
 
-  // Обработчик потери фокуса.
   const handleBlur = (field) => {
-    // Помечаем поле как тронутое.
     setTouched((prev) => ({ ...prev, [field]: true }));
-
-    // Получаем текущее значение поля.
     const currentValue =
       field === "name"
         ? name
@@ -169,17 +135,12 @@ function FeedbackForm() {
             ? phone
             : message;
 
-    // Валидируем и записываем результат.
     setErrors((prev) => ({
       ...prev,
       [field]: validators[field](currentValue),
     }));
   };
 
-  // Доп. задание 3: переключение чекбокса «Хочу получить ответ».
-  // Сразу пересчитываем ошибку email явным required, а не через
-  // validators.email — иначе функция использовала бы ещё не обновлённое
-  // состояние wantsReply (React применит setWantsReply только на следующем рендере).
   const handleWantsReplyChange = (checked) => {
     setWantsReply(checked);
     if (touched.email) {
@@ -190,11 +151,9 @@ function FeedbackForm() {
     }
   };
 
-  // Обработчик отправки формы.
   const handleSubmit = (e) => {
-    e.preventDefault(); // Предотвращаем перезагрузку страницы.
+    e.preventDefault();
 
-    // 1. Валидируем все поля сразу.
     const newErrors = {
       name: validateName(name),
       email: validateEmail(email, wantsReply),
@@ -202,46 +161,34 @@ function FeedbackForm() {
       message: validateMessage(message),
     };
 
-    // 2. Записываем ошибки и помечаем все поля как тронутые.
     setErrors(newErrors);
     setTouched({ name: true, email: true, phone: true, message: true });
 
-    // 3. Если хотя бы одна ошибка есть — не отправляем.
     if (Object.values(newErrors).some((err) => err !== null)) {
-      return; // Прерываем отправку.
+      return; 
     }
 
-    // 4. Имитируем отправку на сервер.
     setIsSubmitting(true);
-    // setTimeout имитирует сетевой запрос с задержкой 1.5 секунды.
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitted(true);
-      // В реальном проекте здесь был бы fetch / axios:
-      // fetch("/api/feedback", { method: "POST", body: ... })
     }, 1500);
   };
 
-  // Возвращает строку классов для инпута в зависимости от состояния.
   const getInputClass = (field) => {
-    // Базовый класс
     const classes = ["field__input"];
-    // Если поле тронуто и есть ошибка — добавляем класс ошибки.
     if (touched[field] && errors[field]) {
       classes.push("field__input--error");
     }
-    // Если поле тронуто и ошибки нет — добавляем класс успеха.
     else if (touched[field] && !errors[field]) {
       classes.push("field__input--valid");
     }
-    // Для textarea добавляем отдельный класс.
     if (field === "message") {
       classes.push("field__input--textarea");
     }
     return classes.join(" ");
   };
 
-  // Если форма успешно отправлена — показываем благодарность.
   if (submitted) {
     return (
       <div className="feedback-form feedback-form--success">
@@ -253,7 +200,6 @@ function FeedbackForm() {
           type="button"
           className="feedback-form__submit"
           onClick={() => {
-            // Сбрасываем форму к начальному состоянию.
             setName("");
             setEmail("");
             setPhone("");
